@@ -1,0 +1,21 @@
+{
+  "name": "@openmutual/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "simulate": "tsx src/simulate.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openmutual/shared": "*",
+    "tsx": "^4.20.0",
+    "viem": "2.57.14"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "vitest": "^3.2.4"
+  }
+}

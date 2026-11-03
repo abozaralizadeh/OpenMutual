@@ -1,0 +1,45 @@
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+data/
+logs/
+
+# Build output and tool folders
+.venv/
+target/
+dist/
+build/
+DerivedData/
+
+# Databases, Docker volumes, models and big binaries
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.db
+*.db-*
+volumes/
+docker-data/
+models/
+*.gguf
+*.safetensors
+*.onnx
+*.pt
+*.ckpt
+*.zip
+*.tar.gz
+*.dmg
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+shared/src/generated/deployment.json
+web/test-results/
+web/playwright-report/
+*.log
+.DS_Store
+web/tsconfig.tsbuildinfo
+web/next-env.d.ts
+
+# Written by next dev on every start, not part of the project
+web/AGENTS.md

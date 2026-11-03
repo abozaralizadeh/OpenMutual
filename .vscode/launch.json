@@ -1,0 +1,75 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Chain (local, fresh)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "bash",
+      "args": ["${workspaceFolder}/scripts/chain.sh"],
+      "env": { "FRESH_CHAIN": "1" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Deploy to local chain",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "bash",
+      "args": ["${workspaceFolder}/scripts/deploy.sh"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Worker",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/worker",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "src/main.ts"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Web: server side",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3417"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Web: browser side",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3417",
+      "webRoot": "${workspaceFolder}/web"
+    },
+    {
+      "name": "Worker flow tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/worker",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vitest", "run"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Contract tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "bash",
+      "args": ["${workspaceFolder}/scripts/forge.sh", "test", "-vv"],
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Everything (start the chain and deploy first)",
+      "configurations": ["Worker", "Web: server side", "Web: browser side"],
+      "stopAll": true
+    }
+  ]
+}

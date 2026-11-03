@@ -1,0 +1,67 @@
+{
+  "_note": "Every setting of the simulation you can tune. Change one, then run npm run deploy to start a fresh local chain with it.",
+  "pool": {
+    "capUsd": 1000000,
+    "starterMoneyUsd": 100000,
+    "withdrawalWaitDays": 7,
+    "memberRebateBps": 0
+  },
+  "results": {
+    "quorum": 2,
+    "challengeWindowMinutes": 60
+  },
+  "team": {
+    "signers": 3,
+    "required": 2,
+    "changeDelayHours": 24
+  },
+  "voting": {
+    "periodDays": 3,
+    "quorumBps": 1000,
+    "minVotes": 3
+  },
+  "pricing": {
+    "mode": "table",
+    "margin": 0.6,
+    "riskGroups": { "low": 0.01, "middle": 0.025, "high": 0.05 },
+    "historyWeight": 50
+  },
+  "products": [
+    {
+      "key": "flight-delay",
+      "name": "Late flight",
+      "kind": "automatic",
+      "unit": "minutes",
+      "trigger": 180,
+      "salesCutoffHours": 24,
+      "resultDeadlineDays": 7,
+      "eventLimitBps": 1000,
+      "maxPayoutUsd": 500,
+      "payoutUsd": 100
+    },
+    {
+      "key": "rainy-day",
+      "name": "Rainy day",
+      "kind": "automatic",
+      "unit": "mm of rain",
+      "trigger": 10,
+      "salesCutoffHours": 48,
+      "resultDeadlineDays": 7,
+      "eventLimitBps": 1000,
+      "maxPayoutUsd": 200,
+      "payoutUsd": 50
+    },
+    {
+      "key": "lost-bag",
+      "name": "Lost bag",
+      "kind": "reviewed",
+      "unit": "",
+      "trigger": 0,
+      "salesCutoffHours": 0,
+      "resultDeadlineDays": 7,
+      "eventLimitBps": 1000,
+      "maxPayoutUsd": 500,
+      "payoutUsd": 200
+    }
+  ]
+}

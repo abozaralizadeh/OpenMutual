@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenMutual</title>
+  <meta name="description" content="A simulation of a community risk pool on a local blockchain, with test money only. Install it and try it on your own machine.">
+  <style>
+    :root {
+      --paper: #f6f3ec;
+      --card: #fffdf8;
+      --ink: #1d2a26;
+      --muted: #5d6b65;
+      --line: #d9d3c4;
+      --accent: #1f6a55;
+      --accent-ink: #ffffff;
+      --accent-soft: #dcebe3;
+      --warn: #8a5a00;
+      --warn-soft: #f6e8c8;
+      --code: #1d2a26;
+      --code-ink: #e9ede9;
+      --serif: ui-serif, Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+      --sans: ui-sans-serif, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #131a18;
+        --card: #1b2421;
+        --ink: #e9ede9;
+        --muted: #9fada6;
+        --line: #313d38;
+        --accent: #5cc3a3;
+        --accent-ink: #0d1412;
+        --accent-soft: #1f3a31;
+        --warn: #e4b95c;
+        --warn-soft: #3b3018;
+        --code: #0d1412;
+        --code-ink: #e9ede9;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--sans); }
+    h1, h2, h3 { font-family: var(--serif); font-weight: 600; line-height: 1.2; margin: 0 0 0.5em; }
+    h1 { font-size: clamp(2rem, 6vw, 3.2rem); letter-spacing: -0.015em; }
+    h2 { font-size: clamp(1.4rem, 3.5vw, 1.8rem); }
+    h3 { font-size: 1.1rem; }
+    p { margin: 0 0 1em; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+    .band { background: var(--warn-soft); color: var(--warn); font-size: 0.92rem; text-align: center; padding: 8px 16px; }
+    header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
+    .brand { font-family: var(--serif); font-weight: 600; font-size: 1.25rem; color: var(--ink); text-decoration: none; }
+    .brand small { font-family: var(--sans); font-weight: 400; font-size: 0.8rem; color: var(--muted); margin-left: 6px; }
+    nav a { margin-left: 18px; text-decoration: none; font-size: 0.95rem; }
+    .hero { padding: 40px 0 28px; }
+    .hero p.lead { font-size: 1.15rem; color: var(--muted); max-width: 640px; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+    .button { display: inline-block; padding: 11px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--accent); }
+    .button.main { background: var(--accent); color: var(--accent-ink); }
+    .button.plain { color: var(--accent); }
+    .shot { display: block; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--card); }
+    .shot img { display: block; width: 100%; height: auto; }
+    .hero-shot { margin-top: 36px; max-height: 520px; }
+    .hero-shot img { object-fit: cover; object-position: top; max-height: 520px; }
+    section { padding: 44px 0; border-top: 1px solid var(--line); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+    .card p { margin: 0; color: var(--muted); }
+    .num { display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); text-align: center; line-height: 28px; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; }
+    .gallery { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-top: 20px; align-items: start; }
+    .gallery .wide { display: grid; gap: 16px; }
+    figure { margin: 0; }
+    figcaption { font-size: 0.9rem; color: var(--muted); margin-top: 6px; }
+    .crop { max-height: 360px; }
+    .crop img { object-fit: cover; object-position: top; max-height: 360px; }
+    .phone { max-width: 260px; }
+    pre { background: var(--code); color: var(--code-ink); border-radius: 10px; padding: 16px 18px; overflow-x: auto; font: 0.92rem/1.6 var(--mono); margin: 0 0 1em; }
+    code { font-family: var(--mono); font-size: 0.92em; }
+    p code, li code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+    .note { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 8px; padding: 14px 16px; }
+    .note p:last-child { margin: 0; }
+    ul.plain { padding-left: 1.2em; margin: 0 0 1em; }
+    ul.plain li { margin-bottom: 0.4em; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 0.92rem; }
+    @media (max-width: 760px) {
+      nav { display: none; }
+      .gallery, .two { grid-template-columns: 1fr; }
+      .phone { max-width: 220px; }
+      .hero { padding-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="band">A simulation with test money on a local chain. Not insurance, nothing for sale, no real money.</div>
+
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="#">OpenMutual <small>working name</small></a>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#screens">Screens</a>
+        <a href="#install">Install</a>
+        <a class="repo-link" href="#install">Code</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <h1>A risk pool run by its members, not by a company.</h1>
+      <p class="lead">OpenMutual is an open experiment. People buy small covers with clear rules, like 100 if a flight is 3 hours late. Other people back the pool that pays them and earn what's left. Smart contracts hold the money and the rules, so anyone can check them.</p>
+      <p class="lead">It runs on your own machine with worthless test dollars, so you can try every part of it without risking anything.</p>
+      <div class="buttons">
+        <a class="button main" href="#install">Install it</a>
+        <a class="button plain repo-link" href="#install">See the code</a>
+      </div>
+      <a class="shot hero-shot" href="screenshots/home.png"><img src="screenshots/home.png" alt="The OpenMutual home page, with a band saying it's a simulation with test money" width="1280" height="1238"></a>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <div class="steps">
+        <div class="card"><span class="num">1</span><h3>Backers fill the pool</h3><p>They get pool shares. Their earnings show up as a higher share price, and they can withdraw after a 7 day wait.</p></div>
+        <div class="card"><span class="num">2</span><h3>Members buy cover</h3><p>Late flight, rainy day or lost bag. Every cover locks its full payout, so the pool never owes more than it holds.</p></div>
+        <div class="card"><span class="num">3</span><h3>Data decides</h3><p>Three sources report what happened and two must agree. Nobody files a claim for a late flight. Lost bags go to a member vote.</p></div>
+        <div class="card"><span class="num">4</span><h3>The contract pays</h3><p>If the rule is met, the payout goes out by itself. If not, the price stays in the pool and backers earn it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screens">
+    <div class="wrap">
+      <h2>What it looks like</h2>
+      <p>Real screens from the app, taken by its browser tests.</p>
+      <div class="gallery">
+        <div class="wide">
+          <figure><a class="shot crop" href="screenshots/my-covers.png"><img src="screenshots/my-covers.png" alt="My covers page, showing a late flight cover that paid out 100 test dollars" width="1280" height="800" loading="lazy"></a><figcaption>A late flight cover that paid out by itself.</figcaption></figure>
+          <figure><a class="shot crop" href="screenshots/numbers.png"><img src="screenshots/numbers.png" alt="The public numbers page with pool totals, a balance check and a share price chart" width="1280" height="1410" loading="lazy"></a><figcaption>Every pool number in public, checked against the chain.</figcaption></figure>
+          <figure><a class="shot crop" href="screenshots/cover.png"><img src="screenshots/cover.png" alt="The Back the pool page, with the pool's money, your shares and the withdrawal form" width="1280" height="1017" loading="lazy"></a><figcaption>Back the pool, watch your shares, and ask to withdraw.</figcaption></figure>
+        </div>
+        <figure><a class="shot phone" href="screenshots/community-phone.png"><img src="screenshots/community-phone.png" alt="The community page on a phone, with membership and votes" width="375" height="1391" loading="lazy"></a><figcaption>Members vote on claims and settings. Works on a phone.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Quick install</h2>
+      <div class="two">
+        <div>
+          <p>You need Node.js 24 or newer. The local chain and the contract tools come from npm, so there's nothing else to install.</p>
+<pre><code>git clone <span class="clone-url">https://github.com/abozaralizadeh/OpenMutual.git</span> openmutual
+cd openmutual
+npm install
+npm run dev</code></pre>
+          <p>Then open <code>http://localhost:3417</code>. Sign in with any email, the code shows on screen, and you start with 10,000 test dollars.</p>
+          <p>Run every test with <code>npm test</code>. The browser tests need Google Chrome.</p>
+        </div>
+        <div>
+          <div class="note">
+            <p><strong>Why there's no live demo here.</strong> The app needs a chain, a background worker and a server, so it can't run as a static page. Installing it takes a couple of minutes.</p>
+          </div>
+          <h3 style="margin-top:22px">What's faked</h3>
+          <ul class="plain">
+            <li>A local test chain in place of a public one</li>
+            <li>Test dollars worth nothing</li>
+            <li>Made up flight and weather data from three fake sources</li>
+            <li>Email codes shown on screen, a stand-in identity check, and five pretend members who vote</li>
+          </ul>
+          <p>Each fake sits behind an interface, so a real one could replace it later.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <p>The contracts haven't been audited. Please don't use any of this with real money. The code refuses any chain that isn't local.</p>
+      <p>License: to be decided. Contributions welcome, see the README in the <a class="repo-link" href="#install">repo</a>.</p>
+    </div>
+  </footer>
+
+  <script>
+    // On GitHub Pages the address is owner.github.io/repo, so the repo link can be worked out here.
+    (function () {
+      var owner = (location.hostname.match(/^([^.]+)\.github\.io$/) || [])[1];
+      var repo = location.pathname.split('/')[1];
+      if (!owner || !repo) return;
+      var url = 'https://github.com/' + owner + '/' + repo;
+      document.querySelectorAll('.repo-link').forEach(function (a) { a.href = url; });
+      document.querySelectorAll('.clone-url').forEach(function (s) { s.textContent = url + '.git'; });
+    })();
+  </script>
+</body>
+</html>

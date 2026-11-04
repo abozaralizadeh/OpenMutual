@@ -64,6 +64,8 @@ That builds the contracts and runs every suite. The browser tests need Google Ch
 | Worker flows (vitest) | `npm run test:worker` | Whole flows on a real local chain: payout, refund, lying source, claims ladder with challenge, appeal and hidden tests, member votes, withdrawals, rebuild from chain |
 | Browser (Playwright) | `npm run test:e2e` | A new person backs the pool, buys cover, gets paid and withdraws. A lost bag claim climbs the ladder and pays. Plus sign-in, admin lock and phone screens |
 
+`BASE_PATH=/openmutual/ npm run test:e2e` runs the browser tests with the app under a path, the way it runs behind nginx on a shared server.
+
 If you change a contract and run one suite on its own, run `bash scripts/forge.sh build` and `npm run gen -w shared` first, or the suite tests the old build. `npm test` does this for you.
 
 ## Other commands
@@ -94,7 +96,7 @@ Nothing calls a paid or outside service. Each fake sits behind an interface, so 
 
 ## Run it on a Linux server
 
-For Ubuntu or Debian:
+On a VM of its own (Ubuntu or Debian):
 
 ```bash
 sudo bash setup_service.sh            # first run installs, later runs update and restart
@@ -102,7 +104,26 @@ sudo bash setup_service.sh --fresh    # start over with a new chain
 journalctl -u openmutual-web.service -f
 ```
 
-It sets up three services: `openmutual-chain`, `openmutual-worker` and `openmutual-web`. The worker and web app also write `logs/worker.log` and `logs/web.log`, capped at 15 MB each. The script makes `.env` on the first run with a random admin token and the clock locked. It's new, so expect rough edges.
+It sets up three services: `openmutual-chain`, `openmutual-worker` and `openmutual-web`, and the app is at `http://<vm>:3417`. The worker and web app also write `logs/worker.log` and `logs/web.log`, capped at 15 MB each. The script makes `.env` on the first run with a random admin token and the clock locked. Later runs keep your `.env`.
+
+### On a shared VM behind nginx, under a path
+
+If the VM already runs nginx and other apps, set `NGINX_SNIPPET` and the script switches to shared mode:
+
+```bash
+sudo SERVICE_NAME=idea-openmutual PORT=8605 BASE_PATH=/openmutual/ \
+     NGINX_SNIPPET=/etc/nginx/max.d/openmutual.conf ./setup_service.sh
+journalctl -u idea-openmutual -f        # the web app, or 'idea-openmutual*' for all three
+```
+
+In shared mode it installs nothing. No apt, no firewall, no certificates, and nothing in `sites-available` or `sites-enabled`. Node 24, nginx and curl have to be there already, or it stops and tells you what's missing.
+
+- Everything listens on 127.0.0.1. `PORT` is the web app, and nginx is the only way in. The chain takes the first free port from 8650 to 8659.
+- The services are `$SERVICE_NAME` (the web app), `$SERVICE_NAME-chain` and `$SERVICE_NAME-worker`.
+- It writes two nginx files and nothing else. `NGINX_SNIPPET` gets a 301 from `/openmutual` to `/openmutual/` and the proxy for `/openmutual/`, with a per-IP rate limit. `/etc/nginx/conf.d/$SERVICE_NAME-limits.conf` gets the rate limit zone. Then it runs `nginx -t` and reloads. If the check fails, both files go back to how they were.
+- The server block for your site has to include the snippet's folder, for example `include /etc/nginx/max.d/*.conf;`.
+
+The app is built for its path, so `BASE_PATH` lives in `.env` and every rebuild uses it. Links, redirects, forms, cookies and Next's own files all stay under it. You can run the browser tests the same way: `BASE_PATH=/openmutual/ npm run test:e2e` puts the app behind `scripts/prefix-proxy.mjs`, a strict proxy that turns away any request outside the path, and the tests fail if one tries.
 
 ## Please don't use it with real money
 

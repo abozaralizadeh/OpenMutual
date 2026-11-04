@@ -201,6 +201,7 @@ The flight chances come from public delay statistics. About 3% of US flights and
 
 - Services: `openmutual-chain`, `openmutual-worker` and `openmutual-web`, each readable with `journalctl -u <name>.service -f`.
 - `setup_service.sh` installs everything on the first run, then updates and restarts on later runs.
+- On a shared VM, `NGINX_SNIPPET` switches it to shared mode. It installs nothing, binds everything to 127.0.0.1, builds the app under `BASE_PATH` (like `/openmutual/`), and writes one nginx location file and one rate limit file, checked with `nginx -t`. The services are then named after `SERVICE_NAME`. See "Run it on a Linux server" in the README.
 - The worker and web app also write to `logs/worker.log` and `logs/web.log`, 5 MB per file with 2 old files kept, so at most 15 MB each. Copy the `logs` folder to local for debugging. The chain runs quietly and only logs to journalctl.
 - The chain keeps its state in `data/chain-state.json`, so a restart doesn't lose anything.
 - Only `.env.example` is in the repo. The real `.env` is made on the VM and never committed.

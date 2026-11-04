@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { createApp, createLogger, hashSecret, loadDeployment, syncEvents, type App, type User } from '@openmutual/shared';
+import { COOKIE_PATH } from './base';
 
 const SESSION_COOKIE = 'om_session';
 const ADMIN_COOKIE = 'om_admin';
@@ -47,14 +48,15 @@ export async function startSession(userId: number) {
   const token = randomBytes(32).toString('hex');
   const expires = Math.floor(Date.now() / 1000) + SESSION_DAYS * 86_400;
   getApp().db.prepare('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)').run(hashSecret(token), userId, expires);
-  (await cookies()).set(SESSION_COOKIE, token, { httpOnly: true, sameSite: 'lax', path: '/', maxAge: SESSION_DAYS * 86_400 });
+  (await cookies()).set(SESSION_COOKIE, token, { httpOnly: true, sameSite: 'lax', path: COOKIE_PATH, maxAge: SESSION_DAYS * 86_400 });
 }
 
 export async function endSession() {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (token) getApp().db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(hashSecret(token));
-  jar.delete(SESSION_COOKIE);
+  // Delete it on the same path it was set on, or the browser keeps it.
+  jar.set(SESSION_COOKIE, '', { httpOnly: true, sameSite: 'lax', path: COOKIE_PATH, maxAge: 0 });
 }
 
 export function adminToken(): string | null {
@@ -71,7 +73,7 @@ export async function isAdmin(): Promise<boolean> {
 export async function startAdmin(given: string): Promise<boolean> {
   const token = adminToken();
   if (!token || given !== token) return false;
-  (await cookies()).set(ADMIN_COOKIE, hashSecret(token), { httpOnly: true, sameSite: 'strict', path: '/', maxAge: 86_400 });
+  (await cookies()).set(ADMIN_COOKIE, hashSecret(token), { httpOnly: true, sameSite: 'strict', path: COOKIE_PATH, maxAge: 86_400 });
   return true;
 }
 

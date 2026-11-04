@@ -15,6 +15,9 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+// The menu and footer links don't prefetch. Every page here reads the chain, so prefetching all
+// ten on every page load costs the server more than it saves, and on a shared VM it adds up.
+
 function SkipForm({ days, label }: { days: number; label: string }) {
   return (
     <ActionForm action={skipClock} submit={label} quiet className="skip">
@@ -35,15 +38,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <p className="band">Simulation with test money. Nothing here is insurance or an investment, and nothing here has real value.</p>
         <header className="top">
           <div className="top-inner">
-            <Link href="/" className="brand">
+            <Link prefetch={false} href="/" className="brand">
               OpenMutual <small>working name</small>
             </Link>
             <nav className="nav" aria-label="Main">
-              <Link href="/cover">Get test cover</Link>
-              <Link href="/my-covers">My covers</Link>
-              <Link href="/pool">Back the pool</Link>
-              <Link href="/numbers">Pool numbers</Link>
-              <Link href="/community">Community</Link>
+              <Link prefetch={false} href="/cover">Get test cover</Link>
+              <Link prefetch={false} href="/my-covers">My covers</Link>
+              <Link prefetch={false} href="/pool">Back the pool</Link>
+              <Link prefetch={false} href="/numbers">Pool numbers</Link>
+              <Link prefetch={false} href="/community">Community</Link>
             </nav>
             <div className="who">
               {balance !== null ? (
@@ -54,7 +57,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   </form>
                 </>
               ) : (
-                <Link href="/login" className="button">Sign in</Link>
+                <Link prefetch={false} href="/login" className="button">Sign in</Link>
               )}
             </div>
           </div>
@@ -74,10 +77,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         </div>
         <main>{children}</main>
         <footer className="bottom">
-          <Link href="/terms">Test terms</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/feedback">Feedback</Link>
-          <Link href="/admin">Admin</Link>
+          <Link prefetch={false} href="/terms">Test terms</Link>
+          <Link prefetch={false} href="/privacy">Privacy</Link>
+          <Link prefetch={false} href="/feedback">Feedback</Link>
+          <Link prefetch={false} href="/admin">Admin</Link>
           <span>Runs on a local test chain only.</span>
         </footer>
       </body>

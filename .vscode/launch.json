@@ -57,6 +57,16 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Browser tests under /openmutual/",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["playwright", "test"],
+      "env": { "BASE_PATH": "/openmutual/" },
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Claims simulation (vote and ladder)",
       "type": "node",
       "request": "launch",

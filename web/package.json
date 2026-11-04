@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p ${WEB_PORT:-3417}",
     "build": "next build",
-    "start": "next start -p ${WEB_PORT:-3417}",
+    "start": "next start -p ${WEB_PORT:-3417} ${WEB_HOST:+-H $WEB_HOST}",
     "e2e": "playwright test"
   },
   "dependencies": {

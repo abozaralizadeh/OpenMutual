@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { bagOffer, chainNow, citiesList, dateOf, flightOffer, ladderOn, poolNumbers, rainOffer, upcomingFlights, type Offer } from '@openmutual/shared';
 import { ActionForm } from '@/components/ActionForm';
 import { buy } from '@/lib/actions';
+import { withBase } from '@/lib/base';
 import { clockTime, money, percent, shortDate } from '@/lib/format';
 import { currentUser, syncedApp } from '@/lib/server';
 
@@ -56,7 +57,7 @@ export default async function Cover({ searchParams }: { searchParams: Search }) 
       {product.wording ? <p className="small muted" data-testid="wording">What it pays for: {product.wording}</p> : null}
       {numbers.paused ? <p className="callout warn">New covers are paused right now.</p> : null}
 
-      <form method="get" action="/cover" className="row" style={{ marginBottom: 20, alignItems: 'flex-end' }}>
+      <form method="get" action={withBase('/cover')} className="row" style={{ marginBottom: 20, alignItems: 'flex-end' }}>
         <input type="hidden" name="product" value={product.key} />
         <label>
           {product.key === 'lost-bag' ? 'Trip ends on' : 'Date'}

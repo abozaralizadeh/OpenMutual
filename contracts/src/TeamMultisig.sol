@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 pragma solidity 0.8.28;
 
 /// @notice A small M of N wallet for the team. It holds no money. Its only job

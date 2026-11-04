@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenMutual social card</title>
+<!-- Source for site/assets/og.png (1200x630) and site/assets/apple-touch-icon.png (180x180). Rendered with demos/og.json. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Figtree:wght@500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  body { margin: 0; background: #ccc; }
+  #og { position: relative; width: 1200px; height: 630px; overflow: hidden; background: #f4efe4; color: #141a17; font-family: 'Figtree', sans-serif; }
+  #og::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(20, 26, 23, 0.16) 1.2px, transparent 1.6px); background-size: 24px 24px; -webkit-mask-image: radial-gradient(ellipse at 85% 40%, #000 15%, transparent 62%); }
+  .left { position: absolute; left: 72px; top: 70px; width: 530px; }
+  .brand { display: flex; align-items: center; gap: 14px; font: 600 30px/1 'Fraunces', serif; }
+  .brand svg { width: 46px; height: 46px; }
+  h1 { font: 600 72px/1.02 'Fraunces', serif; letter-spacing: -0.02em; margin: 64px 0 26px; font-variation-settings: 'opsz' 144; }
+  h1 em { font-style: italic; font-weight: 500; color: #8a5b00; }
+  p { font-size: 24px; line-height: 1.4; color: #565e58; margin: 0; }
+  .foot { position: absolute; left: 72px; bottom: 56px; font: 600 17px/1 'IBM Plex Mono', monospace; letter-spacing: 0.08em; color: #565e58; text-transform: uppercase; }
+  .board { position: absolute; right: 64px; top: 150px; width: 430px; background: #121714; color: #f3ead6; border-radius: 22px; padding: 28px 28px 26px; font-family: 'IBM Plex Mono', monospace; box-shadow: 0 40px 70px -30px rgba(40, 30, 10, 0.55); transform: rotate(-1.5deg); }
+  .row { display: flex; gap: 22px; }
+  .cell { display: flex; flex-direction: column; gap: 9px; }
+  .label { font-size: 12px; letter-spacing: 0.18em; color: #8c958f; text-transform: uppercase; }
+  .flaps { display: flex; gap: 4px; }
+  .flap { position: relative; width: 26px; height: 36px; display: grid; place-items: center; background: linear-gradient(#1d2420 0 49%, #151b18 51% 100%); border-radius: 5px; font-weight: 600; font-size: 20px; }
+  .flap::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, 0.7); }
+  .status { margin-top: 24px; padding-top: 22px; border-top: 1px dashed #2c3530; }
+  .status .flap { width: 32px; height: 46px; font-size: 26px; color: #4cc08e; }
+  .note { margin-top: 18px; font: 500 16px/1.4 'Figtree', sans-serif; color: #8c958f; }
+  #icon { width: 180px; height: 180px; margin-top: 20px; }
+</style>
+</head>
+<body>
+  <div id="og">
+    <div class="left">
+      <div class="brand"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#121714"/><rect x="12" y="10" width="40" height="44" rx="6" fill="#1d2420"/><path d="M12 32h40" stroke="#000" stroke-opacity=".7" stroke-width="2"/><path d="M21 43V21l11 13 11-13v22" fill="none" stroke="#f2b233" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>OpenMutual</div>
+      <h1>Late flight? It pays out <em>by itself.</em></h1>
+      <p>A community risk pool where public data decides every payout. A working simulation with test money.</p>
+    </div>
+    <div class="board">
+      <div class="row">
+        <div class="cell"><span class="label">Flight</span><span class="flaps"><span class="flap">T</span><span class="flap">A</span><span class="flap">1</span><span class="flap">0</span><span class="flap">0</span></span></div>
+        <div class="cell"><span class="label">From</span><span class="flaps"><span class="flap">M</span><span class="flap">A</span><span class="flap">D</span></span></div>
+        <div class="cell"><span class="label">To</span><span class="flaps"><span class="flap">D</span><span class="flap">U</span><span class="flap">B</span></span></div>
+      </div>
+      <div class="status">
+        <span class="label">Cover status</span>
+        <div class="flaps" style="margin-top:10px"><span class="flap">P</span><span class="flap">A</span><span class="flap">I</span><span class="flap">D</span><span class="flap"> </span><span class="flap">1</span><span class="flap">0</span><span class="flap">0</span><span class="flap">.</span><span class="flap">0</span><span class="flap">0</span></div>
+      </div>
+      <p class="note">240 minutes late. Two of three sources agreed. Nobody filed a claim.</p>
+    </div>
+    <div class="foot">Source available · test money only · github.com/abozaralizadeh/OpenMutual</div>
+  </div>
+  <svg id="icon" viewBox="0 0 64 64"><rect width="64" height="64" fill="#121714"/><rect x="12" y="10" width="40" height="44" rx="6" fill="#1d2420"/><path d="M12 32h40" stroke="#000" stroke-opacity=".7" stroke-width="2"/><path d="M21 43V21l11 13 11-13v22" fill="none" stroke="#f2b233" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</body>
+</html>

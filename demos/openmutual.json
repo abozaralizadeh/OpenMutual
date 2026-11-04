@@ -1,0 +1,389 @@
+{
+  "//": "Demo of the real app. Start a fresh local stack first: ADMIN_TOKEN=demo-local-admin npm run dev. Then record with the demo-recorder tool. The token is a throwaway for that local run only.",
+  "name": "openmutual-demo",
+  "url": "http://localhost:3417/",
+  "viewport": "desktop",
+  "theme": "light",
+  "timezone": "Europe/Rome",
+  "blur": [
+    "input[type=password]"
+  ],
+  "hide": [
+    "nextjs-portal"
+  ],
+  "intro": {
+    "title": "OpenMutual",
+    "subtitle": "A community risk pool, simulated with test money",
+    "duration": 2400
+  },
+  "steps": [
+    {
+      "caption": "A simulation with test money on a local chain",
+      "wait": 1800
+    },
+    {
+      "goto": "/login",
+      "caption": "Sign in with any email. The code shows on screen"
+    },
+    {
+      "type": "demo@example.com",
+      "into": {
+        "label": "Email"
+      }
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Get a code"
+      }
+    },
+    {
+      "waitFor": {
+        "testId": "login-code"
+      },
+      "cut": true
+    },
+    {
+      "click": {
+        "label": "Code"
+      }
+    },
+    {
+      "//": "Enters the code the page shows, the way a person would copy it",
+      "eval": "const c = document.querySelector('[data-testid=login-code]').textContent; const i = document.querySelector('input[name=code]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, c); i.dispatchEvent(new Event('input', { bubbles: true }));",
+      "after": 500
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Sign in"
+      }
+    },
+    {
+      "waitFor": {
+        "url": "**/pool"
+      },
+      "cut": true
+    },
+    {
+      "expect": {
+        "testId": "balance",
+        "hasText": "10,000.00"
+      }
+    },
+    {
+      "caption": "Back the pool with test dollars",
+      "type": "2000",
+      "into": {
+        "label": "Amount in test dollars"
+      },
+      "clear": true
+    },
+    {
+      "press": "Tab",
+      "show": false
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Deposit"
+      }
+    },
+    {
+      "waitFor": {
+        "text": "Deposited 2,000 test dollars."
+      },
+      "cut": true
+    },
+    {
+      "zoom": {
+        "testId": "pool-value"
+      },
+      "hold": 1300
+    },
+    {
+      "//": "A still for the site, kept out of the video",
+      "recording": "pause"
+    },
+    {
+      "caption": null,
+      "scroll": "top"
+    },
+    {
+      "screenshot": "out/shots/pool.png",
+      "cursor": false
+    },
+    {
+      "recording": "resume"
+    },
+    {
+      "caption": "Pick a flight. The price comes from its risk",
+      "click": {
+        "role": "link",
+        "name": "Get test cover"
+      },
+      "mark": "cover"
+    },
+    {
+      "waitFor": {
+        "url": "**/cover"
+      },
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "link",
+        "name": "Choose TA"
+      }
+    },
+    {
+      "waitFor": {
+        "testId": "price"
+      },
+      "cut": true
+    },
+    {
+      "zoom": {
+        "testId": "price"
+      },
+      "hold": 1200
+    },
+    {
+      "//": "A still for the site, kept out of the video",
+      "recording": "pause"
+    },
+    {
+      "caption": null,
+      "scroll": "top"
+    },
+    {
+      "screenshot": "out/shots/cover.png",
+      "cursor": false
+    },
+    {
+      "recording": "resume"
+    },
+    {
+      "caption": "Buying locks the full payout in the pool",
+      "click": {
+        "role": "button",
+        "name": "Buy for"
+      }
+    },
+    {
+      "waitFor": {
+        "url": "**/my-covers"
+      },
+      "cut": true
+    },
+    {
+      "expect": {
+        "testId": "status",
+        "hasText": "Active"
+      }
+    },
+    {
+      "wait": 900
+    },
+    {
+      "//": "Admin sign in is kept out of the video",
+      "recording": "pause"
+    },
+    {
+      "goto": "/admin"
+    },
+    {
+      "type": "demo-local-admin",
+      "into": {
+        "label": "Admin token"
+      }
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Sign in"
+      }
+    },
+    {
+      "waitFor": {
+        "label": "Result for"
+      }
+    },
+    {
+      "recording": "resume"
+    },
+    {
+      "caption": "Demo switch: this flight lands 4 hours late",
+      "type": "240",
+      "into": {
+        "label": "Result for"
+      },
+      "clear": true
+    },
+    {
+      "press": "Tab",
+      "show": false
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Set result"
+      }
+    },
+    {
+      "waitFor": {
+        "text": "set to 240"
+      },
+      "cut": true
+    },
+    {
+      "wait": 700
+    },
+    {
+      "goto": "/my-covers",
+      "caption": "Skip the clock until the flight lands"
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "wait": 5000,
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "wait": 5000,
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "waitFor": {
+        "text": "1 hour check"
+      },
+      "timeout": 60000,
+      "cut": true
+    },
+    {
+      "caption": "Two of three sources agree. Then a 1 hour check",
+      "zoom": {
+        "text": "1 hour check"
+      },
+      "hold": 1800
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "waitFor": {
+        "testId": "status",
+        "hasText": "Paid out"
+      },
+      "timeout": 60000,
+      "cut": true
+    },
+    {
+      "caption": "Paid out by itself. Nobody filed a claim",
+      "zoom": {
+        "text": "240 minutes late"
+      },
+      "hold": 1800,
+      "mark": "paid"
+    },
+    {
+      "expect": {
+        "testId": "status",
+        "hasText": "Paid out"
+      }
+    },
+    {
+      "//": "A still for the site, kept out of the video",
+      "recording": "pause"
+    },
+    {
+      "caption": null,
+      "scroll": "top"
+    },
+    {
+      "screenshot": "out/shots/paid.png",
+      "cursor": false
+    },
+    {
+      "recording": "resume"
+    },
+    {
+      "goto": "/numbers",
+      "caption": "Every number is public, checked against the chain"
+    },
+    {
+      "expect": {
+        "testId": "paid-out",
+        "hasText": "100.00"
+      }
+    },
+    {
+      "zoom": {
+        "testId": "paid-out"
+      },
+      "hold": 1600,
+      "mark": "numbers"
+    },
+    {
+      "//": "A still for the site, kept out of the video",
+      "recording": "pause"
+    },
+    {
+      "caption": null,
+      "scroll": "top"
+    },
+    {
+      "screenshot": "out/shots/numbers.png",
+      "cursor": false
+    },
+    {
+      "recording": "resume"
+    },
+    {
+      "caption": null,
+      "wait": 400
+    }
+  ],
+  "outro": {
+    "title": "OpenMutual",
+    "subtitle": "Source available. Test money only.",
+    "duration": 2400
+  },
+  "exports": [
+    {
+      "file": "openmutual-demo.mp4"
+    },
+    {
+      "file": "openmutual-demo.gif",
+      "width": 800,
+      "fps": 10,
+      "trim": [
+        "intro",
+        "numbers@end"
+      ]
+    },
+    {
+      "file": "openmutual-demo.jpg",
+      "at": "paid+0.6"
+    }
+  ]
+}

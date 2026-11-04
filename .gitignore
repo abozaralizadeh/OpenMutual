@@ -43,3 +43,7 @@ web/next-env.d.ts
 
 # Written by next dev on every start, not part of the project
 web/AGENTS.md
+
+# Demo recorder output and login sessions
+demos/out/
+demos/auth/

@@ -1,0 +1,19 @@
+{
+  "//": "Full-page review shots of the static site in site/. Use with: demo inspect --story demos/site-shots.json --upto 3 --viewport 1440x900@1 --theme dark --fullPage --shot <file>",
+  "name": "site-shots",
+  "url": "../site/index.html",
+  "viewport": "1440x900@1",
+  "theme": "light",
+  "steps": [
+    {
+      "waitFor": "networkidle"
+    },
+    {
+      "eval": "document.querySelectorAll('img[loading=lazy]').forEach(function (i) { i.loading = 'eager' }); document.querySelectorAll('.reveal').forEach(function (e) { e.classList.add('in') })"
+    },
+    {
+      "eval": "Promise.all(Array.from(document.images).map(function (i) { return i.decode().catch(function () {}) })).then(function () { return new Promise(function (r) { setTimeout(r, 4500) }) })"
+    }
+  ],
+  "exports": []
+}

@@ -1,10 +1,14 @@
 # OpenMutual (working name)
 
+![Demo: sign in, back the pool, buy cover on a flight, the flight lands 4 hours late and the cover pays out by itself](docs/demo/openmutual-demo.gif)
+
+Project site: https://abozaralizadeh.github.io/OpenMutual/
+
+Source available, free for non-commercial use (PolyForm Noncommercial 1.0.0). See [License](#license).
+
 A simulation of a community risk pool on a blockchain. People buy small, rule based covers, other people back the pool that pays them, and the backers earn what's left after payouts. The rules and the money live in smart contracts, so no single company sits in the middle.
 
 It runs with test money on a local test chain. Nothing here is insurance or an investment, nothing is for sale, and nobody can put real money in. Don't send money to anything claiming to be OpenMutual.
-
-![Home page](docs/screenshots/home.png)
 
 ## What you can do in it
 
@@ -95,8 +99,9 @@ worker/        Background loop and the long simulation
 web/           Next.js app and Playwright tests
 config/        decisions.json, every setting you can tune in one place
 scripts/       Chain, deploy, dev, tests
-docs/          Design, flows, simulation results, screenshots
-site/          The project's one page website
+docs/          Design, flows, simulation results, screenshots, the demo GIF
+site/          The project's one page website, with its images and demo video
+demos/         Storyboards that re-record the demo and the site images
 ```
 
 | Doc | What's in it |
@@ -107,8 +112,12 @@ site/          The project's one page website
 
 ## Contributing
 
-Issues and pull requests are welcome. For anything big, open an issue first so we can talk it through. Before you send a pull request, run `npm test` and make sure it passes. Keep everything local: no real keys, no public networks and no paid services. If something needs an outside service, put it behind an interface with a local fake, like the ones above.
+Issues and pull requests are welcome. For anything big, open an issue first so we can talk it through. Before you send a pull request, run `npm test` and make sure it passes. Keep everything local: no real keys, no public networks and no paid services. Contributions are accepted only under the terms in [CONTRIBUTING.md](CONTRIBUTING.md), which let the author relicense them, commercially too.
 
 ## License
 
-To be decided.
+Source available, free for non-commercial use (PolyForm Noncommercial 1.0.0). You can use, study, change and share the code for any non-commercial purpose. See [LICENSE](LICENSE).
+
+Commercial use needs written permission. Ask through a GitHub issue.
+
+The docs, screenshots and demo are under CC BY-NC 4.0, see [docs/LICENSE.md](docs/LICENSE.md). Third party packages keep their own licenses, see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

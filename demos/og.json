@@ -1,0 +1,14 @@
+{
+  "//": "Renders the social card and the touch icon from og.html. No app needed.",
+  "name": "og",
+  "url": "og.html",
+  "viewport": { "width": 1200, "height": 900, "zoom": 1 },
+  "cursor": { "style": "none" },
+  "steps": [
+    { "waitFor": "networkidle" },
+    { "wait": 600 },
+    { "screenshot": "out/og.png", "target": "#og", "padding": 0, "cursor": false },
+    { "screenshot": "out/apple-touch-icon.png", "target": "#icon", "padding": 0, "cursor": false }
+  ],
+  "exports": []
+}

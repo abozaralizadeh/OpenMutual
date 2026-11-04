@@ -1,0 +1,295 @@
+{
+  "//": "Clean stills of the real app for the site, with no zoom or captions. Zoom 1 on purpose: screenshot steps come out double-zoomed when the browser zoom isn't 1. Same fresh stack as openmutual.json.",
+  "name": "openmutual-stills",
+  "url": "http://localhost:3417/",
+  "viewport": "1280x720@1",
+  "theme": "light",
+  "timezone": "Europe/Rome",
+  "blur": [
+    "input[type=password]"
+  ],
+  "hide": [
+    "nextjs-portal"
+  ],
+  "pace": 1.6,
+  "cursor": {
+    "style": "none"
+  },
+  "steps": [
+    {
+      "wait": 1800
+    },
+    {
+      "goto": "/login"
+    },
+    {
+      "type": "demo@example.com",
+      "into": {
+        "label": "Email"
+      }
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Get a code"
+      }
+    },
+    {
+      "waitFor": {
+        "testId": "login-code"
+      },
+      "cut": true
+    },
+    {
+      "click": {
+        "label": "Code"
+      }
+    },
+    {
+      "//": "Enters the code the page shows, the way a person would copy it",
+      "eval": "const c = document.querySelector('[data-testid=login-code]').textContent; const i = document.querySelector('input[name=code]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(i, c); i.dispatchEvent(new Event('input', { bubbles: true }));",
+      "after": 500
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Sign in"
+      }
+    },
+    {
+      "waitFor": {
+        "url": "**/pool"
+      },
+      "cut": true
+    },
+    {
+      "expect": {
+        "testId": "balance",
+        "hasText": "10,000.00"
+      }
+    },
+    {
+      "type": "2000",
+      "into": {
+        "label": "Amount in test dollars"
+      },
+      "clear": true
+    },
+    {
+      "press": "Tab",
+      "show": false
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Deposit"
+      }
+    },
+    {
+      "waitFor": {
+        "text": "Deposited 2,000 test dollars."
+      },
+      "cut": true
+    },
+    {
+      "scroll": "top"
+    },
+    {
+      "wait": 500
+    },
+    {
+      "screenshot": "out/stills/pool.png",
+      "cursor": false
+    },
+    {
+      "click": {
+        "role": "link",
+        "name": "Get test cover"
+      }
+    },
+    {
+      "waitFor": {
+        "url": "**/cover"
+      },
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "link",
+        "name": "Choose TA"
+      }
+    },
+    {
+      "waitFor": {
+        "testId": "price"
+      },
+      "cut": true
+    },
+    {
+      "scroll": "top"
+    },
+    {
+      "wait": 500
+    },
+    {
+      "screenshot": "out/stills/cover.png",
+      "cursor": false
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Buy for"
+      }
+    },
+    {
+      "waitFor": {
+        "url": "**/my-covers"
+      },
+      "cut": true
+    },
+    {
+      "expect": {
+        "testId": "status",
+        "hasText": "Active"
+      }
+    },
+    {
+      "wait": 900
+    },
+    {
+      "goto": "/admin"
+    },
+    {
+      "type": "demo-local-admin",
+      "into": {
+        "label": "Admin token"
+      }
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Sign in"
+      }
+    },
+    {
+      "waitFor": {
+        "label": "Result for"
+      }
+    },
+    {
+      "type": "240",
+      "into": {
+        "label": "Result for"
+      },
+      "clear": true
+    },
+    {
+      "press": "Tab",
+      "show": false
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Set result"
+      }
+    },
+    {
+      "waitFor": {
+        "text": "set to 240"
+      },
+      "cut": true
+    },
+    {
+      "wait": 700
+    },
+    {
+      "goto": "/my-covers"
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "wait": 5000,
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "wait": 5000,
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "waitFor": {
+        "text": "1 hour check"
+      },
+      "timeout": 60000,
+      "cut": true
+    },
+    {
+      "click": {
+        "role": "button",
+        "name": "Skip 1 day"
+      }
+    },
+    {
+      "waitFor": {
+        "testId": "status",
+        "hasText": "Paid out"
+      },
+      "timeout": 60000,
+      "cut": true
+    },
+    {
+      "expect": {
+        "testId": "status",
+        "hasText": "Paid out"
+      }
+    },
+    {
+      "scroll": "top"
+    },
+    {
+      "wait": 500
+    },
+    {
+      "screenshot": "out/stills/paid.png",
+      "cursor": false
+    },
+    {
+      "goto": "/numbers"
+    },
+    {
+      "expect": {
+        "testId": "paid-out",
+        "hasText": "100.00"
+      }
+    },
+    {
+      "scroll": "top"
+    },
+    {
+      "wait": 500
+    },
+    {
+      "screenshot": "out/stills/numbers.png",
+      "cursor": false
+    },
+    {
+      "wait": 400
+    }
+  ],
+  "exports": []
+}

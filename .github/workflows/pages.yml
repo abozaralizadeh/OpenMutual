@@ -1,10 +1,14 @@
-# Publishes site/ to GitHub Pages, with the screenshots from docs/screenshots.
-# Not switched on yet. To use it: make the repo public, set Settings > Pages > Source
-# to "GitHub Actions", then run it from the Actions tab. Add a push trigger later if you like.
+# Publishes site/ to GitHub Pages. The site is self-contained: its screenshots and the demo video live in site/assets.
+# Pages has to be set to "GitHub Actions" in the repo settings for this to work.
 name: Pages
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
 
 permissions:
   contents: read
@@ -23,14 +27,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
-      - name: Put the site together
-        run: |
-          mkdir -p _site/screenshots
-          cp -R site/. _site/
-          cp docs/screenshots/*.png _site/screenshots/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: site
       - id: deployment
         uses: actions/deploy-pages@v4

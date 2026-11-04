@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { keccak256, toBytes, toFunctionSelector, type Abi, type Address, type Hex, type PublicClient } from 'viem';
 import { assertLocalChain, roleAccount, send, walletClient, type Role } from './chain';
-import { loadDecisions, type Decisions } from './config';
+import { loadDecisions, type ClaimSettings, type Decisions } from './config';
 import { CoverBookAbi, MutualPoolAbi, ResultOracleAbi, TestUSDAbi, TimelockControllerAbi } from './generated/abis';
 import { dataDir, projectRoot, type ContractName } from './paths';
 
@@ -13,6 +13,7 @@ export interface Addresses {
   book: Address;
   members: Address;
   review: Address;
+  ladder: Address;
   governor: Address;
   multisig: Address;
   timelock: Address;
@@ -38,11 +39,33 @@ async function create(client: PublicClient, name: ContractName, args: unknown[])
   return receipt.contractAddress;
 }
 
+/** The ladder's settings as the contract takes them, from config/decisions.json. */
+export function ladderSettings(claims: ClaimSettings) {
+  return {
+    panelSize: claims.panelSize,
+    minMakers: claims.minMakers,
+    minConfidence: claims.minConfidence,
+    jurySize: claims.jurySize,
+    juryQuorum: claims.juryQuorum,
+    appealJurySize: claims.appealJurySize,
+    appealQuorum: claims.appealQuorum,
+    commitTime: claims.commitHours * 3600,
+    revealTime: claims.revealHours * 3600,
+    challengeTime: claims.challengeHours * 3600,
+    appealTime: claims.appealHours * 3600,
+    testWindow: claims.testWindowMinutes * 60,
+    assessorBond: usdToUnits(claims.assessorBondUsd),
+    jurorBond: usdToUnits(claims.jurorBondUsd),
+    challengeBond: usdToUnits(claims.challengeBondUsd),
+    appealBond: usdToUnits(claims.appealBondUsd),
+  };
+}
+
 export async function deployAll(client: PublicClient, decisions: Decisions = loadDecisions()): Promise<Addresses> {
   await assertLocalChain(client);
   const deployer = roleAccount('deployer');
   const account = (role: Role) => roleAccount(role).address;
-  const { pool: poolSettings, results, team, voting } = decisions;
+  const { pool: poolSettings, results, team, voting, claims } = decisions;
 
   const usd = await create(client, 'TestUSD', []);
   const timelock = await create(client, 'TimelockController', [
@@ -63,6 +86,7 @@ export async function deployAll(client: PublicClient, decisions: Decisions = loa
   const book = await create(client, 'CoverBook', [pool, oracle, deployer.address, account('quoter')]);
   const members = await create(client, 'Membership', [deployer.address, account('verifier')]);
   const review = await create(client, 'ClaimReview', [book, members, voting.periodDays * DAY, voting.quorumBps, voting.minVotes]);
+  const ladder = await create(client, 'ClaimLadder', [book, members, account('auditor'), ladderSettings(claims)]);
 
   // What members may change by vote. Anything not listed here stays with the team.
   const allowed: [Address, string][] = [
@@ -89,7 +113,8 @@ export async function deployAll(client: PublicClient, decisions: Decisions = loa
   for (const role of ['reporter0', 'reporter1', 'reporter2'] as const) {
     await call(oracle, ResultOracleAbi, 'setReporter', [account(role), true]);
   }
-  await call(book, CoverBookAbi, 'setClaimReview', [review]);
+  // Both are deployed so either can be tried. The book sends claims to the one the settings pick.
+  await call(book, CoverBookAbi, 'setClaimReview', [claims.mode === 'vote' ? review : ladder]);
   for (const product of decisions.products) {
     await call(book, CoverBookAbi, 'addProduct', [
       {
@@ -124,7 +149,7 @@ export async function deployAll(client: PublicClient, decisions: Decisions = loa
   }
   await call(timelock, TimelockControllerAbi, 'renounceRole', [`0x${'00'.repeat(32)}`, deployer.address]);
 
-  return { usd, pool, oracle, book, members, review, governor, multisig, timelock };
+  return { usd, pool, oracle, book, members, review, ladder, governor, multisig, timelock };
 }
 
 export function deploymentFile() {

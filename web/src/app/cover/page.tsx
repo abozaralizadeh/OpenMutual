@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { bagOffer, chainNow, citiesList, dateOf, flightOffer, poolNumbers, rainOffer, upcomingFlights, type Offer } from '@openmutual/shared';
+import { bagOffer, chainNow, citiesList, dateOf, flightOffer, ladderOn, poolNumbers, rainOffer, upcomingFlights, type Offer } from '@openmutual/shared';
 import { ActionForm } from '@/components/ActionForm';
 import { buy } from '@/lib/actions';
 import { clockTime, money, percent, shortDate } from '@/lib/format';
@@ -14,6 +14,9 @@ const RULES: Record<string, string> = {
   'rainy-day': 'Pays if 10 mm or more of rain falls in that city that day. Sales close 2 days before.',
   'lost-bag': 'You file a claim if your bag goes missing, and members vote on it. You have 7 days after the trip ends.',
 };
+
+const LADDER_BAG_RULE =
+  'You file a claim if your bag goes missing. An AI panel answers first, and a jury of members if the panel doesn\'t agree or someone challenges it. You have 7 days after the trip ends.';
 
 function dates(start: number, count: number) {
   return Array.from({ length: count }, (_, index) => dateOf(start + index * DAY));
@@ -49,7 +52,8 @@ export default async function Cover({ searchParams }: { searchParams: Search }) 
           </Link>
         ))}
       </nav>
-      <p>{RULES[product.key]}</p>
+      <p>{product.key === 'lost-bag' && ladderOn(app) ? LADDER_BAG_RULE : RULES[product.key]}</p>
+      {product.wording ? <p className="small muted" data-testid="wording">What it pays for: {product.wording}</p> : null}
       {numbers.paused ? <p className="callout warn">New covers are paused right now.</p> : null}
 
       <form method="get" action="/cover" className="row" style={{ marginBottom: 20, alignItems: 'flex-end' }}>

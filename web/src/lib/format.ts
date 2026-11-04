@@ -31,8 +31,23 @@ export function duration(seconds: number): string {
 
 export const STATUS_WORDS: Record<string, string> = {
   Active: 'Active',
-  ClaimOpen: 'Members are voting',
+  ClaimOpen: 'Claim being decided',
   PaidOut: 'Paid out',
   Expired: 'Ended, no payout',
   Refunded: 'Price refunded',
 };
+
+/** Where a claim is on the ladder, in plain words. */
+export const STAGE_WORDS: Record<string, string> = {
+  Panel: 'The AI panel is answering',
+  Challenge: 'The AI panel agreed. Open for a challenge',
+  Jury: 'A jury of members is answering',
+  AppealWindow: 'The jury decided. Open for an appeal',
+  Appeal: 'An appeal jury is answering',
+  Final: 'Decided',
+  Done: 'Done',
+};
+
+export const ANSWER_WORDS: Record<string, string> = { pay: 'Pay', deny: "Don't pay", unclear: 'Not clear' };
+
+export const OUTCOME_WORDS: Record<string, string> = { Pay: 'Paid', Deny: 'Turned down', NoDecision: 'No decision, price refunded' };

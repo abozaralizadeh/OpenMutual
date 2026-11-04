@@ -1,5 +1,11 @@
 import {
+  advanceClaims,
+  assessorDuty,
   chainNow,
+  ladderOn,
+  pretendJurorDuty,
+  revealTests,
+  revealVotes,
   ClaimReviewAbi,
   CoverBookAbi,
   demoResultFor,
@@ -155,18 +161,32 @@ export interface TickOptions {
   simulatedMembers?: boolean;
 }
 
+type Step = [string, () => Promise<void>];
+
+/** Reveals first, then hidden tests, then moving claims on, then new answers. That order lets a test show itself before it pays. */
+function ladderSteps(app: App, log: Logger, options: TickOptions): Step[] {
+  if (!ladderOn(app)) return [];
+  return [
+    ['ladder reveals', () => revealVotes(app, log)],
+    ['test reveals', () => revealTests(app, log)],
+    ['ladder', () => advanceClaims(app, log)],
+    ['assessors', () => assessorDuty(app, log)],
+    ...(options.simulatedMembers ? ([['pretend jurors', () => pretendJurorDuty(app, log)]] as Step[]) : []),
+  ];
+}
+
 /** One pass of everything that needs doing. Each step can fail alone and retry on the next pass. */
 export async function tick(app: App, sources: ResultSource[], log: Logger, options: TickOptions = {}) {
-  const steps: [string, () => Promise<void>][] = [
+  const steps: Step[] = [
     ['clock', () => mine(app.client)],
     ['sync', async () => void (await syncEvents(app.db, app.client, app.addresses))],
     ['report', async () => reportResults(app, sources, log, await chainNow(app.client))],
     ['end covers', () => endCovers(app, log)],
     ['queue', () => processQueue(app)],
     ['votes', async () => finishVotes(app, log, await chainNow(app.client))],
-    ...(options.simulatedMembers
-      ? ([['simulated votes', async () => simulatedVotes(app, await chainNow(app.client))]] as [string, () => Promise<void>][])
-      : []),
+    ...(options.simulatedMembers ? ([['simulated votes', async () => simulatedVotes(app, await chainNow(app.client))]] as Step[]) : []),
+    ['sync for the ladder', async () => void (await syncEvents(app.db, app.client, app.addresses))],
+    ...ladderSteps(app, log, options),
     ['sync again', async () => void (await syncEvents(app.db, app.client, app.addresses))],
     ['share price', () => trackSharePrice(app)],
   ];

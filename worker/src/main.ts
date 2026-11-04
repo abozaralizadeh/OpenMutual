@@ -7,7 +7,8 @@ const log = createLogger('worker');
 
 const app = createApp();
 await assertLocalChain(app.client);
-await seedSimulatedMembers(app);
+const simulated = process.env.SIMULATED_MEMBERS !== 'false';
+await seedSimulatedMembers(app, { pretendJurors: simulated });
 const sources = fakeSources(demoResults(app));
 log.info('Worker started', { sources: sources.map((source) => source.name), pricing: app.pricing.name });
 
@@ -19,7 +20,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
 }
 
 while (!stopping) {
-  await tick(app, sources, log, { simulatedMembers: process.env.SIMULATED_MEMBERS !== 'false' });
+  await tick(app, sources, log, { simulatedMembers: simulated });
   await new Promise((resolve) => setTimeout(resolve, INTERVAL_MS));
 }
 log.info('Worker stopped');

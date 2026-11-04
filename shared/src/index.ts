@@ -1,4 +1,5 @@
 export * from './app';
+export * from './assessors';
 export * from './chain';
 export * from './config';
 export * from './db';
@@ -6,6 +7,7 @@ export * from './deploy';
 export * from './generated/abis';
 export * from './identity';
 export * from './indexer';
+export * from './ladder';
 export * from './logger';
 export * from './mailer';
 export * from './paths';

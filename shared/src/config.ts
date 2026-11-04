@@ -13,6 +13,8 @@ export interface ProductConfig {
   eventLimitBps: number;
   maxPayoutUsd: number;
   payoutUsd: number;
+  /** What the cover pays for, in plain words. Reviewed products only. Claims are judged against it. */
+  wording?: string;
 }
 
 export interface Decisions {
@@ -20,6 +22,7 @@ export interface Decisions {
   results: { quorum: number; challengeWindowMinutes: number };
   team: { signers: number; required: number; changeDelayHours: number };
   voting: { periodDays: number; quorumBps: number; minVotes: number };
+  claims: ClaimSettings;
   pricing: {
     mode: 'table' | 'history';
     margin: number;
@@ -30,6 +33,27 @@ export interface Decisions {
 }
 
 export type RiskGroup = 'low' | 'middle' | 'high';
+
+/** How claims that need judgement are decided. "ladder" is the AI panel, jury and appeal. "vote" is the older member vote. */
+export interface ClaimSettings {
+  mode: 'ladder' | 'vote';
+  panelSize: number;
+  minMakers: number;
+  minConfidence: number;
+  jurySize: number;
+  juryQuorum: number;
+  appealJurySize: number;
+  appealQuorum: number;
+  commitHours: number;
+  revealHours: number;
+  challengeHours: number;
+  appealHours: number;
+  testWindowMinutes: number;
+  assessorBondUsd: number;
+  jurorBondUsd: number;
+  challengeBondUsd: number;
+  appealBondUsd: number;
+}
 
 export function loadDecisions(): Decisions {
   return JSON.parse(readFileSync(join(projectRoot(), 'config/decisions.json'), 'utf8'));

@@ -4,8 +4,14 @@
   "private": true,
   "description": "A simulation of a distributed mutual. Test money on a local chain only.",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "engines": { "node": ">=24" },
-  "workspaces": ["shared", "worker", "web"],
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "shared",
+    "worker",
+    "web"
+  ],
   "scripts": {
     "chain": "bash scripts/chain.sh",
     "deploy": "bash scripts/deploy.sh",
@@ -18,7 +24,8 @@
     "test:shared": "npm test -w shared",
     "test:worker": "npm test -w worker",
     "test:e2e": "npm run e2e -w web",
-    "simulate": "npm run simulate -w worker"
+    "simulate": "npm run simulate -w worker",
+    "simulate:claims": "npm run simulate:claims -w worker --"
   },
   "devDependencies": {
     "@foundry-rs/anvil": "1.7.1",

@@ -57,6 +57,16 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Claims simulation (vote and ladder)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/worker",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "src/simulate-claims.ts", "1", "3"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
       "name": "Contract tests",
       "type": "node",
       "request": "launch",

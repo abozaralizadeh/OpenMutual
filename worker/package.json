@@ -7,7 +7,8 @@
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
     "simulate": "tsx src/simulate.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "simulate:claims": "tsx src/simulate-claims.ts"
   },
   "dependencies": {
     "@openmutual/shared": "*",

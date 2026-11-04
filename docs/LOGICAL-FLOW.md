@@ -87,19 +87,41 @@ Nobody judges the claim, and the member doesn't file anything. The result comes 
 
 For a demo, the Admin page can set a result by hand. That feeds the same three sources, so it still goes through the same 2 of 3 check and the 1 hour window.
 
-## 5. Lost bag: a claim members review
+## 5. Lost bag: a claim climbs the ladder
 
 ```mermaid
 flowchart TD
     A[Member files a claim within 7 days, with a short text] --> B[Text is saved off chain, a hash goes on chain]
-    B --> C[Other members vote for 3 days, one member one vote]
-    C --> D{Enough votes, and more yes than no?}
-    D -->|Yes| E[Payout sent]
-    D -->|No| F[Claim turned down, price is earned]
-    D -->|Too few votes| G[Price refunded]
+    B --> P[AI panel: 5 assessors from 3 or more makers answer sealed, with a reason]
+    P --> Q{All agree, and all at least 80% sure?}
+    Q -->|Yes| C[2 days for anyone to challenge]
+    C -->|Nobody does| F[Final answer]
+    C -->|Challenged| J
+    Q -->|No| J[Jury: 7 random members answer sealed]
+    J --> K{Pay plus not clear at least as many as don't pay?}
+    K -->|Yes, pay| W[2 days to appeal]
+    K -->|No| W
+    J -->|Fewer than 4 answered| R[No decision, price refunded]
+    W -->|Nobody does| F
+    W -->|Appealed, once| X[Appeal jury: 11 random members]
+    X --> F
+    F --> T[1 hour for a hidden test to show itself]
+    T -->|A test| U[Judges scored against the locked answer, price refunded]
+    T -->|A real claim| V[Judges scored against the final answer, then pay or turn down]
 ```
 
-Only people who were members before the claim was filed can vote, and nobody votes on their own claim. In the simulation, five pretend members vote yes unless the text says "fake" or "reject".
+How each step works:
+
+1. **Sealing.** Each judge sends a hash of their answer, how sure they are, a reason and a secret. Once everyone has sealed, or the 12 hours are up, they open them. Nobody can see another answer before sealing their own.
+2. **AI panel.** Picked at random from the assessors with a good record, never two answers from one place deciding alone: the panel needs at least 3 makers. If there aren't enough, the claim goes straight to a jury.
+3. **Challenge.** The claimant can challenge a "no" for free. Anyone else puts up 20 test dollars, which come back if the jury changes the answer.
+4. **Jury.** Picked at random from members in the jury pool, leaving out the claimant and whoever challenged. "Not clear" counts for paying, and so does a tie.
+5. **Appeal.** Once, by either side, with a 20 test dollar bond that comes back if the answer changes. The bigger jury's answer is final. If too few of them answer, the first jury's answer stands.
+6. **Scoring.** Matching the final answer earns 1 reputation point, missing it costs 2. Not answering costs 5 and 5% of the bond. On a hidden test, a right answer earns 2, a wrong one costs 20 and 10% of the bond. Lost bond goes to the pool. A judge stops being picked below 50 reputation, under half the bond, or once more than 1 in 4 of their tests are wrong, after at least 4. Easy claims can top reputation back up, so the test record counts on its own.
+
+**Hidden tests.** The auditor locks in the hash of the right answer before the claim is filed. A fresh wallet files the claim, so it looks like any other. After the final answer, and before it pays, that wallet shows the answer and its secret. The contract checks it against what was locked in, scores the judges on it and refunds the price.
+
+In the simulation the AI assessors are local fakes, and 20 pretend jurors sit in the jury pool. Set `"mode": "vote"` under `claims` in `config/decisions.json` for the older flow, where members vote on every claim for 3 days and five pretend members vote yes unless the text says "fake".
 
 ## 6. Earning and withdrawing
 
@@ -154,3 +176,6 @@ Members can only vote on three settings: the pool cap, the withdrawal wait, and 
 | Bug found in a contract | The guardian pauses new sales and deposits. Withdrawals and payouts stay open |
 | A reporter key is stolen | One key alone can't decide a result. The team swaps the key through the timelock |
 | Flight changes date or number | The cover stays linked to the original flight. Cancelled and rebooked counts as cancelled |
+| A judge gets tests wrong | They lose reputation and part of their bond, and stop being picked below 50 |
+| A claim tries to give orders to the AI | Assessors from other makers aren't fooled, so the panel splits and a jury decides |
+| Not enough jurors answer | The first jury refunds the price. A short appeal keeps the first jury's answer |

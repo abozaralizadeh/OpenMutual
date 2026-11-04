@@ -105,6 +105,10 @@ async function approveAll(app: App, account: Account) {
   const max = 2n ** 256n - 1n;
   await send(app.client, account, { address: app.addresses.usd, abi: TestUSDAbi, functionName: 'approve', args: [app.addresses.pool, max] });
   await send(app.client, account, { address: app.addresses.usd, abi: TestUSDAbi, functionName: 'approve', args: [app.addresses.book, max] });
+  // The ladder holds jury bonds, and bonds to challenge or appeal.
+  if (app.addresses.ladder) {
+    await send(app.client, account, { address: app.addresses.usd, abi: TestUSDAbi, functionName: 'approve', args: [app.addresses.ladder, max] });
+  }
 }
 
 export function userAccount(user: User) {
@@ -439,7 +443,7 @@ export async function becomeMember(app: App, user: User, person: { fullName: str
   countUse(app.db, 'member_joined');
 }
 
-// Claims reviewed by members
+// Claims that need judgement. They go to the ladder (see ladder.ts) or, in vote mode, to a member vote.
 
 export async function fileClaim(app: App, user: User, coverId: number, evidence: string) {
   const evidenceHash = keccak256(toBytes(evidence));

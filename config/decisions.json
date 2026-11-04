@@ -20,6 +20,26 @@
     "quorumBps": 1000,
     "minVotes": 3
   },
+  "claims": {
+    "_note": "mode is ladder (AI panel, then a jury, then one appeal) or vote (members vote on every claim).",
+    "mode": "ladder",
+    "panelSize": 5,
+    "minMakers": 3,
+    "minConfidence": 80,
+    "jurySize": 7,
+    "juryQuorum": 4,
+    "appealJurySize": 11,
+    "appealQuorum": 6,
+    "commitHours": 12,
+    "revealHours": 12,
+    "challengeHours": 48,
+    "appealHours": 48,
+    "testWindowMinutes": 60,
+    "assessorBondUsd": 1000,
+    "jurorBondUsd": 100,
+    "challengeBondUsd": 20,
+    "appealBondUsd": 20
+  },
   "pricing": {
     "mode": "table",
     "margin": 0.6,
@@ -61,7 +81,8 @@
       "resultDeadlineDays": 7,
       "eventLimitBps": 1000,
       "maxPayoutUsd": 500,
-      "payoutUsd": 200
+      "payoutUsd": 200,
+      "wording": "Pays the full amount if your checked bag doesn't reach you within 48 hours of landing, or arrives too damaged to use. Bags you carry on yourself aren't covered."
     }
   ]
 }

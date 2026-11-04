@@ -5,11 +5,14 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { Hex } from 'viem';
 import {
+  appealClaim,
   askToWithdraw,
   bagOffer,
   becomeMember,
   buyCover,
+  castVote,
   chainNow,
+  challengeClaim,
   countUse,
   createUser,
   depositToPool,
@@ -22,6 +25,9 @@ import {
   fromUsd,
   getMoreTestMoney,
   hashSecret,
+  joinJury,
+  ladderOn,
+  leaveJury,
   makeQuote,
   pendingTeamChanges,
   proposeChange,
@@ -29,6 +35,7 @@ import {
   rainRef,
   rejectResult,
   saveFeedback,
+  sendTestClaim,
   setDemoResult,
   setPaused,
   skipTime,
@@ -180,8 +187,25 @@ export async function submitClaim(_: ActionState, form: FormData): Promise<Actio
   const text = String(form.get('evidence') ?? '').trim();
   if (text.length < 5) return { error: 'Say what happened in a few words.' };
   return attempt(async () => {
-    await fileClaim(getApp(), user, Number(form.get('coverId')), text.slice(0, 1000));
-    return 'Sent to members for a vote.';
+    const app = getApp();
+    await fileClaim(app, user, Number(form.get('coverId')), text.slice(0, 1000));
+    return ladderOn(app) ? 'Sent to the claims ladder. The AI panel answers first.' : 'Sent to members for a vote.';
+  });
+}
+
+export async function challenge(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await needUser();
+  return attempt(async () => {
+    await challengeClaim(getApp(), user, Number(form.get('id')));
+    return 'Challenged. A jury of members will decide.';
+  });
+}
+
+export async function appeal(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await needUser();
+  return attempt(async () => {
+    await appealClaim(getApp(), user, Number(form.get('id')));
+    return 'Appealed. A bigger jury will decide, and that answer is final.';
   });
 }
 
@@ -228,6 +252,36 @@ export async function claimVote(_: ActionState, form: FormData): Promise<ActionS
   return attempt(async () => {
     await voteOnClaim(getApp(), userAccount(user), Number(form.get('id')), form.get('choice') === 'yes');
     return 'Vote counted.';
+  });
+}
+
+const ANSWERS = ['pay', 'deny', 'unclear'] as const;
+
+export async function juryAnswer(_: ActionState, form: FormData): Promise<ActionState> {
+  const user = await needUser();
+  const choice = ANSWERS.find((item) => item === form.get('choice'));
+  if (!choice) return { error: 'Pick an answer.' };
+  const why = String(form.get('why') ?? '').trim().slice(0, 300);
+  return attempt(async () => {
+    await castVote(getApp(), userAccount(user), Number(form.get('id')), choice, choice === 'unclear' ? 50 : 80, why || 'No reason given.');
+    return 'Answer sealed. Nobody sees it until everyone has answered.';
+  });
+}
+
+export async function joinTheJury(_: ActionState): Promise<ActionState> {
+  const user = await needUser();
+  return attempt(async () => {
+    const app = getApp();
+    await joinJury(app, user);
+    return `You're in the jury pool. Your ${app.decisions.claims.jurorBondUsd} test dollar bond comes back when you leave.`;
+  });
+}
+
+export async function leaveTheJury(_: ActionState): Promise<ActionState> {
+  const user = await needUser();
+  return attempt(async () => {
+    await leaveJury(getApp(), user);
+    return 'You left the jury pool and got your bond back.';
   });
 }
 
@@ -309,6 +363,17 @@ export async function adminSchedule(_: ActionState, form: FormData): Promise<Act
     const { setting, value } = settingFrom(form);
     await teamSchedule(getApp(), setting, value);
     return 'Two test signers approved it. It can run after the delay.';
+  });
+}
+
+export async function adminTestClaim(_: ActionState, form: FormData): Promise<ActionState> {
+  await needAdmin();
+  const evidence = String(form.get('evidence') ?? '').trim();
+  const expected = form.get('expected') === 'pay' ? 'pay' : 'deny';
+  if (evidence.length < 5) return { error: 'Write the claim text.' };
+  return attempt(async () => {
+    const { claimId } = await sendTestClaim(getApp(), evidence.slice(0, 1000), expected);
+    return `Hidden test claim ${claimId} filed. The right answer is locked in. Judges see a normal claim.`;
   });
 }
 

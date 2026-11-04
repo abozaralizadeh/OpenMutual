@@ -8,6 +8,7 @@ export const CONTRACT_NAMES = [
   'CoverBook',
   'Membership',
   'ClaimReview',
+  'ClaimLadder',
   'MemberGovernor',
   'TeamMultisig',
   'TimelockController',

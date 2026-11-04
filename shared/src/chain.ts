@@ -26,6 +26,7 @@ export const ROLES = {
   signer0: 7,
   signer1: 8,
   signer2: 9,
+  auditor: 10,
 } as const;
 
 export type Role = keyof typeof ROLES;
@@ -64,8 +65,14 @@ export function walletClient(account: Account, url = rpcUrl()) {
   return createWalletClient({ account, chain: localChain, transport: http(url) });
 }
 
+const accounts = new Map<string, ReturnType<typeof mnemonicToAccount>>();
+
+/** Working a wallet out from the phrase is slow on purpose, so each one is worked out once. */
 export function accountAt(index: number) {
-  return mnemonicToAccount(process.env.LOCAL_MNEMONIC ?? PUBLIC_TEST_MNEMONIC, { addressIndex: index });
+  const phrase = process.env.LOCAL_MNEMONIC ?? PUBLIC_TEST_MNEMONIC;
+  const key = `${index}:${phrase}`;
+  if (!accounts.has(key)) accounts.set(key, mnemonicToAccount(phrase, { addressIndex: index }));
+  return accounts.get(key)!;
 }
 
 export function roleAccount(role: Role) {
@@ -95,6 +102,12 @@ const FRIENDLY_ERRORS: Record<string, string> = {
   ClaimWindowClosed: 'The time for claims on this cover has ended.',
   NotActive: "This cover isn't active.",
   NotReady: "This isn't ready yet.",
+  NotSeated: "You're not on this one.",
+  Busy: "You're still on an open claim. Leave once it's decided.",
+  CommitClosed: 'The time to answer has passed.',
+  WindowClosed: 'That window has closed.',
+  NothingToChallenge: 'That answer already goes your way.',
+  WrongStage: 'This claim has moved on.',
 };
 
 /** Turns a contract revert into a sentence a person can read. */
@@ -116,10 +129,12 @@ export interface Write {
 /** Simulates, sends and waits. Simulating first gives a clear error and spends nothing on failure. */
 export async function send(client: PublicClient, account: Account, write: Write) {
   const { request, result } = await client.simulateContract({ ...write, account } as never) as unknown as {
-    request: unknown;
+    request: object;
     result: unknown;
   };
-  const hash = await walletClient(account).writeContract(request as never);
+  // Picking judges at random can cost a little more when mined than when estimated, so leave headroom.
+  const gas = await client.estimateContractGas({ ...write, account } as never);
+  const hash = await walletClient(account).writeContract({ ...request, gas: (gas * 5n) / 4n } as never);
   // The local chain mines each transaction straight away, so the receipt is usually there already.
   const receipt = await client.getTransactionReceipt({ hash }).catch(() => client.waitForTransactionReceipt({ hash }));
   if (receipt.status !== 'success') throw new ChainActionError(`Transaction failed: ${write.functionName}`);

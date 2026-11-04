@@ -63,6 +63,30 @@ CREATE TABLE IF NOT EXISTS claim_evidence (
   evidence_hash TEXT PRIMARY KEY,
   text TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS ladder_votes (
+  claim_id INTEGER NOT NULL,
+  round INTEGER NOT NULL,
+  wallet TEXT NOT NULL,
+  verdict INTEGER NOT NULL,
+  confidence INTEGER NOT NULL,
+  reason_hash TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'sealed',
+  PRIMARY KEY (claim_id, round, wallet)
+);
+CREATE TABLE IF NOT EXISTS claim_notes (
+  hash TEXT PRIMARY KEY,
+  text TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS test_claims (
+  cover_id INTEGER PRIMARY KEY,
+  claim_id INTEGER,
+  wallet TEXT NOT NULL,
+  wallet_key TEXT NOT NULL,
+  expected INTEGER NOT NULL,
+  salt TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'filed'
+);
 CREATE TABLE IF NOT EXISTS proposal_notes (
   description_hash TEXT PRIMARY KEY,
   text TEXT NOT NULL

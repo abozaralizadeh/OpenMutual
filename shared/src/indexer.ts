@@ -2,7 +2,7 @@ import { parseEventLogs, type Abi, type Address, type PublicClient } from 'viem'
 import type { Db } from './db';
 import { getState, setState } from './db';
 import type { Addresses } from './deploy';
-import { ClaimReviewAbi, CoverBookAbi, MemberGovernorAbi, MembershipAbi, MutualPoolAbi, ResultOracleAbi } from './generated/abis';
+import { ClaimLadderAbi, ClaimReviewAbi, CoverBookAbi, MemberGovernorAbi, MembershipAbi, MutualPoolAbi, ResultOracleAbi } from './generated/abis';
 
 const WATCHED: [keyof Addresses, Abi | readonly unknown[]][] = [
   ['pool', MutualPoolAbi],
@@ -10,6 +10,7 @@ const WATCHED: [keyof Addresses, Abi | readonly unknown[]][] = [
   ['oracle', ResultOracleAbi],
   ['members', MembershipAbi],
   ['review', ClaimReviewAbi],
+  ['ladder', ClaimLadderAbi],
   ['governor', MemberGovernorAbi],
 ];
 
@@ -28,8 +29,10 @@ export async function syncEvents(db: Db, client: PublicClient, addresses: Addres
   const from = BigInt(getState(db, 'synced_block') ?? '-1') + 1n;
   if (from > latest) return 0;
 
+  // Older local deployments have no ladder, so only watch what's there.
+  const watched = WATCHED.filter(([name]) => Boolean(addresses[name]));
   const logs = await client.getLogs({
-    address: WATCHED.map(([name]) => addresses[name]) as Address[],
+    address: watched.map(([name]) => addresses[name]) as Address[],
     fromBlock: from,
     toBlock: latest,
   });
@@ -44,7 +47,7 @@ export async function syncEvents(db: Db, client: PublicClient, addresses: Addres
     'INSERT OR IGNORE INTO chain_events (tx, log_index, block, time, contract, name, args) VALUES (?, ?, ?, ?, ?, ?, ?)',
   );
   let added = 0;
-  for (const [name, abi] of WATCHED) {
+  for (const [name, abi] of watched) {
     const own = logs.filter((log) => log.address.toLowerCase() === addresses[name].toLowerCase());
     const parsed = parseEventLogs({ abi: abi as Abi, logs: own }) as unknown as {
       eventName: string;

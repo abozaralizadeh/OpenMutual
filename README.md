@@ -14,9 +14,10 @@ It runs with test money on a local test chain. Nothing here is insurance or an i
 
 - Sign in with any email. The code shows on screen, and you get a test wallet with 10,000 test dollars.
 - Back the pool, watch your share price move, and withdraw after a 7 day wait.
-- Buy test cover: late flight (3 hours or more), rainy day (10 mm or more) or lost bag (members vote on the claim).
+- Buy test cover: late flight (3 hours or more), rainy day (10 mm or more) or lost bag (you file a claim and it climbs the claims ladder).
 - Skip the simulated clock ahead and watch results come in and covers pay out by themselves.
-- Become a member, vote on claims and on a few pool settings.
+- Become a member, join the jury pool, and vote on a few pool settings.
+- Watch a claim climb the claims ladder: a panel of fake AI assessors answers first, a random jury of members decides if they don't all agree or someone challenges, and either side can appeal once.
 - See every pool number on a public page, checked against the chain.
 
 ## Quick install
@@ -34,6 +35,20 @@ Then open http://localhost:3417. The admin token prints in the terminal at the s
 
 `npm run dev` starts a fresh local chain, deploys the contracts, and runs the worker and the web app. `RESUME=1 npm run dev` keeps the chain and data from the last run. To change any setting, copy `.env.example` to `.env`.
 
+## The claims ladder
+
+Lost bag claims need someone to judge them. They go up a ladder and stop at the first step that settles them:
+
+1. **AI panel.** Five assessors from at least three different makers answer alone, in secret, and give a reason. If they all agree and are all at least 80% sure, that answer stands, unless someone challenges it within 2 days.
+2. **Jury.** Otherwise, or after a challenge, 7 members picked at random from the jury pool answer in secret. "Not clear" counts for paying, and so does a tie, so doubt goes to the claimant.
+3. **Appeal.** Either side can appeal once, within 2 days, to a jury of 11. That answer is final.
+
+Every answer is sealed first and opened together, so nobody can copy. Judges put up a bond and gain or lose reputation for matching the final answer, the same for a yes and a no. Hidden test claims with an answer locked in beforehand check the judges, and a wrong answer on a test costs reputation and part of the bond, which goes to the pool. A judge who gets more than 1 in 4 tests wrong, once they've done 4, stops being picked. In the simulation judges earn reputation only, no fee.
+
+The claimant pays nothing to challenge a "no" from the panel. An appeal needs a 20 test dollar bond, which comes back if the answer changes. Anyone else needs a bond to challenge too. All of this is in `contracts/src/ClaimLadder.sol`, and every number is in `config/decisions.json` under `claims`. Set `"mode": "vote"` there to go back to a plain member vote on every claim.
+
+[docs/CLAIMS-RESULTS.md](docs/CLAIMS-RESULTS.md) runs the same made up claims through both and compares them.
+
 ## Run the tests
 
 ```bash
@@ -44,10 +59,10 @@ That builds the contracts and runs every suite. The browser tests need Google Ch
 
 | Suite | Command | What it checks |
 | --- | --- | --- |
-| Contracts (Foundry) | `npm run test:contracts` | Pool, cover, results, votes, team wallet, plus random tests that the pool can always pay |
-| Shared (vitest) | `npm run test:shared` | Local-only guards, fake world and sources, pricing, identity check, log file cap |
-| Worker flows (vitest) | `npm run test:worker` | Whole flows on a real local chain: payout, refund, lying source, votes, withdrawals, rebuild from chain |
-| Browser (Playwright) | `npm run test:e2e` | A new person backs the pool, buys cover, gets paid and withdraws. Plus sign-in, admin lock and phone screens |
+| Contracts (Foundry) | `npm run test:contracts` | Pool, cover, results, votes, claims ladder, team wallet, plus random tests that the pool can always pay |
+| Shared (vitest) | `npm run test:shared` | Local-only guards, fake world and sources, fake AI assessors, pricing, identity check, log file cap |
+| Worker flows (vitest) | `npm run test:worker` | Whole flows on a real local chain: payout, refund, lying source, claims ladder with challenge, appeal and hidden tests, member votes, withdrawals, rebuild from chain |
+| Browser (Playwright) | `npm run test:e2e` | A new person backs the pool, buys cover, gets paid and withdraws. A lost bag claim climbs the ladder and pays. Plus sign-in, admin lock and phone screens |
 
 If you change a contract and run one suite on its own, run `bash scripts/forge.sh build` and `npm run gen -w shared` first, or the suite tests the old build. `npm test` does this for you.
 
@@ -58,6 +73,7 @@ If you change a contract and run one suite on its own, run `bash scripts/forge.s
 | `npm run chain` | Only the local chain on port 8545 |
 | `npm run deploy` | Build the contracts and deploy them to the local chain |
 | `npm run simulate -- 12 20` | 12 simulated weeks, 20 covers a day. Writes [docs/SIMULATION-RESULTS.md](docs/SIMULATION-RESULTS.md). Takes about half an hour |
+| `npm run simulate:claims -- 6 5` | 6 simulated weeks, 5 lost bag claims a day, decided by a member vote and by the claims ladder. Writes [docs/CLAIMS-RESULTS.md](docs/CLAIMS-RESULTS.md) |
 
 ## What's faked
 
@@ -70,7 +86,9 @@ Nothing calls a paid or outside service. Each fake sits behind an interface, so 
 | Flight and weather data | Three fake sources reading the same made up world, with late rates set from public statistics | `shared/src/sources/` |
 | Identity check | Approves any name unless it contains "blocked" | `shared/src/identity.ts` |
 | Email | The code shows on screen | `shared/src/mailer.ts` |
-| Other members | Five pretend members who vote yes unless a claim says "fake" or "reject". Turn off with `SIMULATED_MEMBERS=false` | `worker/src/tick.ts` |
+| Other members | Five pretend members who vote on proposals, yes unless it says "reject", and 20 pretend jurors who read claims the way a person would and get about 1 in 20 wrong. Turn both off with `SIMULATED_MEMBERS=false` | `worker/src/tick.ts`, `shared/src/ladder.ts` |
+| AI models that judge claims | Six fake assessors from five makers with known habits: a few percent wrong, mistakes that overlap, and one that follows orders planted in a claim | `shared/src/assessors.ts` |
+| Hidden test claims | Filed from the admin page, from a fresh wallet, with the answer locked in by a local auditor key | `shared/src/ladder.ts` |
 | People's own wallets | The server holds a test key for each person | `shared/src/app.ts` |
 | Time | A simulated clock you can skip forward. Lock it with `PUBLIC_CLOCK=false` | Top of every page |
 
@@ -109,6 +127,7 @@ demos/         Storyboards that re-record the demo and the site images
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, contracts, data model, fakes, design choices |
 | [docs/LOGICAL-FLOW.md](docs/LOGICAL-FLOW.md) | The main flows, step by step, with diagrams |
 | [docs/SIMULATION-RESULTS.md](docs/SIMULATION-RESULTS.md) | A long run with made up people |
+| [docs/CLAIMS-RESULTS.md](docs/CLAIMS-RESULTS.md) | The same claims decided by a member vote and by the claims ladder |
 
 ## Contributing
 

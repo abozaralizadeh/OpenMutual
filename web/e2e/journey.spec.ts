@@ -86,6 +86,58 @@ test('a new person can back the pool, buy cover, get paid and withdraw, without 
   await shot(page, 'numbers');
 });
 
+test('a lost bag claim climbs the claims ladder and pays, and a member can join the jury', async ({ page }) => {
+  await signIn(page, 'ladder@test.local');
+  await page.goto('/cover?product=lost-bag');
+  await expect(page.getByTestId('wording')).toContainText('48 hours');
+  await page.getByRole('button', { name: 'See the price' }).click();
+  await page.getByRole('button', { name: /^Buy for/ }).click();
+  await expect(page).toHaveURL(/\/my-covers$/);
+
+  await page.getByText('Something went wrong? File a claim').click();
+  await page.getByLabel('What happened?').fill('My bag never came off the belt in Rome.');
+  await page.getByRole('button', { name: 'Send the claim' }).click();
+  // The form goes once the claim is filed, and the claim shows where it is on the ladder.
+  await expect(page.getByTestId('ladder-stage')).toBeVisible();
+  await expect(page.getByRole('blockquote')).toHaveText('My bag never came off the belt in Rome.');
+
+  // The fake AI panel answers alone and in secret, then the answers open together.
+  await expect.poll(async () => {
+    await page.reload();
+    return page.getByTestId('panel-answers').locator('li').count();
+  }, { timeout: 30_000 }).toBe(5);
+  await expect(page.getByTestId('status')).toHaveText('Claim being decided');
+  await shot(page, 'claim-ladder');
+
+  const paidOut = () =>
+    expect
+      .poll(async () => {
+        await page.reload();
+        return page.getByTestId('status').textContent();
+      }, { timeout: 6_000 })
+      .toBe('Paid out')
+      .then(() => true, () => false);
+  let paid = false;
+  for (let day = 0; day < 8 && !paid; day++) {
+    await skip(page, 'Skip 1 day');
+    paid = await paidOut();
+  }
+  expect(paid).toBe(true);
+  await expect(page.getByText('200.00 tUSD went to your wallet.')).toBeVisible();
+
+  await page.goto('/community');
+  await page.getByLabel('Name').fill('Made Up Person');
+  await page.getByLabel('Country').fill('Italy');
+  await page.getByRole('button', { name: 'Run the fake check' }).click();
+  // The form goes once you're a member, and the page says so.
+  await expect(page.getByText("You're a member.", { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Join the jury pool' }).click();
+  await expect(page.getByText(/You're in the jury pool\./).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'AI assessors' })).toBeVisible();
+  await expect(page.getByRole('row', { name: /^Northwind Northwind/ })).toBeVisible();
+  await shot(page, 'community-ladder');
+});
+
 test('wrong login codes are turned down', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('wrong-code@test.local');

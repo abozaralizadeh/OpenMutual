@@ -11,7 +11,8 @@ flowchart TB
     W -->|signs quotes, sends transactions for test wallets| CH
     WK[Worker] --> DB
     WK --> SRC[Three fake result sources]
-    WK -->|reports results, ends covers, runs the withdrawal queue| CH
+    WK --> AI[Six fake AI assessors]
+    WK -->|reports results, ends covers, moves claims up the ladder, runs the withdrawal queue| CH
     subgraph CH[Local test chain, Anvil]
         USD[TestUSD]
         POOL[MutualPool]
@@ -19,12 +20,15 @@ flowchart TB
         OR[ResultOracle]
         MEM[Membership]
         CR[ClaimReview]
+        LAD[ClaimLadder]
         GOV[MemberGovernor]
         TEAM[TeamMultisig]
         TL[Timelock, 24 hours]
         BOOK --> POOL
         BOOK --> OR
-        BOOK --> CR
+        BOOK -->|claims, in vote mode| CR
+        BOOK -->|claims| LAD
+        LAD --> MEM
         GOV --> TL
         TEAM --> TL
         TL -->|owns| POOL
@@ -36,7 +40,7 @@ flowchart TB
 
 - **Contracts** hold the money and the rules. Nobody can take the pool's money or change a cover after it's sold. After deploy, no single key owns anything: every rule change goes through a 24 hour timelock.
 - **Web app** is the screens. Each person signs in by email and gets a test wallet. The server sends transactions for that wallet, so nobody needs a wallet app. It also signs price quotes with the quoter key.
-- **Worker** runs every few seconds. It asks three fake sources for results and reports each one from its own reporter key. It ends covers once results are final, works through the withdrawal queue, closes votes and copies chain events into the database.
+- **Worker** runs every few seconds. It asks three fake sources for results and reports each one from its own reporter key. It ends covers once results are final, works through the withdrawal queue, closes votes and copies chain events into the database. For claims it reveals sealed answers when their time comes, moves each claim to its next step, and has the fake AI assessors and pretend jurors answer the claims they're picked for.
 - **Database** holds sign-ins, labels and copied events, so pages load fast. The chain is the source of truth for money. If the database is lost it can be rebuilt from the chain.
 
 The web server holds the test wallet keys. That's fine for a simulation with worthless money and a terrible idea for real money, where people would hold their own keys. See "What needs to change before real money" below.
@@ -80,7 +84,8 @@ setup_service.sh
 | CoverBook | Products, covers and sales. Checks the signed quote, the sales cut-off, the event limit and that the pool has enough free money. Ends covers once a result is final |
 | ResultOracle | Takes results from three reporters. Two must agree. Then there's a 1 hour window where the guardian can reject it |
 | Membership | Who's a member and since when. Only the identity checker can add people |
-| ClaimReview | Member vote on reviewed claims, such as a lost bag. You can't vote on your own claim |
+| ClaimLadder | Decides claims that need judgement, such as a lost bag: an AI panel, then a random jury, then one appeal. Holds judges' bonds, keeps their reputation, and checks hidden test claims against an answer locked in beforehand |
+| ClaimReview | The older way: a member vote on every claim. Used when `claims.mode` is `vote`. You can't vote on your own claim |
 | MemberGovernor | Member vote on a short list of settings. One member, one vote. Passed votes go through the timelock |
 | TeamMultisig | Team wallet needing 2 of 3 signers. Can propose any change, through the same timelock |
 
@@ -90,7 +95,7 @@ Products, as set in `config/decisions.json`:
 | --- | --- | --- | --- |
 | Late flight | Automatic, 180 minutes late or cancelled | 100 | 24 hours before |
 | Rainy day | Automatic, 10 mm of rain or more | 50 | 48 hours before |
-| Lost bag | Members vote on the claim | 200 | Any time, claim within 7 days |
+| Lost bag | A claim, decided by the claims ladder | 200 | Any time, claim within 7 days |
 
 Each event, such as one flight on one day, can't take more than 10% of the pool.
 
@@ -121,6 +126,16 @@ Each event, such as one flight on one day, can't take more than 10% of the pool.
 | premium, payout | What was paid and what's paid if it triggers |
 | status | Active, ClaimOpen, PaidOut, Expired or Refunded |
 
+**ClaimLadder**
+
+| Field | Meaning |
+| --- | --- |
+| claim | Cover, claimant's wallet, hash of the claim text, step, each round's answer, the final outcome, and whether it was a test |
+| round | Who was picked, when sealing and opening close, and the count of pay, don't pay and not clear |
+| commits, verdicts | Each judge's sealed answer, then the opened one. Reasons are hashes |
+| seats | For each assessor and juror: bond, reputation, tests passed and failed, and how many open claims they sit on |
+| testCommits | Hashes of hidden test answers and when they were locked in |
+
 No names, emails or anything personal go on chain. Only a wallet address and hashes.
 
 ### Off chain (SQLite)
@@ -131,7 +146,9 @@ No names, emails or anything personal go on chain. Only a wallet address and has
 | identity_checks | Results of the fake identity check |
 | chain_events, covers | Copied chain events and a cover list for fast pages |
 | labels | Readable names for event hashes, like the flight number |
-| claim_evidence, proposal_notes | Text behind the hashes on chain |
+| claim_evidence, proposal_notes, claim_notes | Text behind the hashes on chain: claims, proposals and judges' reasons |
+| ladder_votes | Sealed answers and their salts, kept until they're opened |
+| test_claims | Hidden test claims: the fresh wallet, the locked answer and its salt |
 | share_prices | Share price over time, for the chart |
 | demo_results | Results set by hand from the Admin page |
 | feedback, usage_counts | Feedback form and daily totals, no personal data |
@@ -147,7 +164,10 @@ Nothing calls a paid or outside service. Each fake sits behind an interface, so 
 | `IdentityProvider` | Approves any name, unless it contains "blocked", then adds the wallet as a member. One membership per name and country | A licensed identity check provider |
 | `Mailer` | Shows the sign-in code on screen. No email goes out | An email service |
 | `PricingEngine` | Risk table, or the table blended with past results | Same, reviewed by an actuary |
-| Simulated members | Five pretend members vote yes, unless the text says "fake" or "reject" | Real members |
+| `ClaimAssessor` | Six fake assessors from five makers, reading claims with keyword rules. They get 4 to 6% wrong, their mistakes overlap 60% of the time, and Northwind follows orders planted in a claim | Real AI models from different makers, each run by its own operator |
+| Simulated members | Five pretend members vote on proposals, yes unless the text says "reject". In vote mode they vote on claims too, yes unless it says "fake" | Real members |
+| Pretend jurors | Twenty pretend members in the jury pool. They read claims like a person and get about 1 in 20 wrong | Real members |
+| Auditor | A local test key locks in the answers to hidden test claims | An independent auditor |
 
 ## Pricing
 
@@ -170,11 +190,11 @@ The flight chances come from public delay statistics. About 3% of US flights and
 | Home | Explains the idea, says it's a simulation, shows the simulated clock |
 | Sign in | Email and a 6 digit code, shown on screen. Makes a test wallet and gives it 10,000 test dollars |
 | Get cover | Pick a flight, a day of weather or a lost bag cover, see the price and rules, confirm |
-| My covers | Each cover's status and result. File a lost bag claim |
+| My covers | Each cover's status and result. File a lost bag claim and follow it up the ladder, with each answer and its reason. Challenge a "no" for free, or appeal |
 | Back the pool | Deposit, see shares and earnings, ask to withdraw, see the queue |
 | Numbers | Public totals, a balance check, share price chart, recent covers |
-| Community | Become a member, vote on claims and settings, suggest a change |
-| Admin | Locked by a token. Set results by hand, pause, schedule a setting change through the team wallet, see feedback and usage |
+| Community | Become a member, join the jury pool and answer claims you're picked for, see claims being decided, the AI assessors' records and decided claims. Vote on settings and suggest a change |
+| Admin | Locked by a token. Set results by hand, file hidden test claims, pause, schedule a setting change through the team wallet, see feedback and usage |
 | Feedback, Terms, Privacy | Feedback form and draft test terms |
 
 ## Operations
@@ -229,9 +249,15 @@ Shares can't be moved between people. **Why:** a tradable token invites speculat
 
 Fixes mean a new deployment. Every setting change waits 24 hours, so people can see it coming and leave if they want. **Why:** upgradable contracts let whoever holds the key change the rules, which goes against the idea.
 
+### Claims climb a ladder
+
+A claim that needs judgement goes to a panel of five AI assessors from at least three makers. They answer alone and sealed, and only settle it if they all agree and are all at least 80% sure. Otherwise, or after a challenge, a random jury of 7 members decides, and either side can appeal once to a jury of 11. Answers are sealed and opened together. Judges bond, are scored the same for a yes and a no on matching the final answer, and hidden test claims check them. More than 1 in 4 tests wrong, after at least 4, and a judge stops being picked. When it could go either way, the claimant wins. **Why:** most claims are clear, and a panel of different models can settle those fast and cheap, while people stay in charge of anything disputed. Different makers stop one model's blind spot from deciding alone, sealing stops copying, and tests catch judges who are careless or can be talked into things. Asking every member to vote on every claim doesn't scale, and most people don't turn up. The numbers from one run are in [CLAIMS-RESULTS.md](CLAIMS-RESULTS.md).
+
+Some known limits: on a public chain, the moment the auditor locks in a test can give it away, so real tests would be locked in batches, well ahead. The fake assessors are keyword rules, not models. In the simulation judges earn reputation only, no fee.
+
 ### One member, one vote, on a short list
 
-Members vote on claims and on three settings: the pool cap, the withdrawal wait and the share given back to members. Everything else stays with the team. **Why:** that's how a mutual works, and it stops the biggest backers from running everything. Voting by money would hand control to the richest backers.
+Members vote on three settings: the pool cap, the withdrawal wait and the share given back to members. Everything else stays with the team. Claims go to a random jury of members instead of everyone. **Why:** that's how a mutual works, and it stops the biggest backers from running everything. Voting by money would hand control to the richest backers.
 
 ## What needs to change before real money
 
@@ -241,4 +267,6 @@ Members vote on claims and on three settings: the pool cap, the withdrawal wait 
 - Real identity checks, sanctions screening and a licensed way to pay in and out
 - Team signers held by different real people
 - Pricing reviewed by an actuary
+- Real AI assessors from different makers, run by separate operators, and a fee for judges that's the same for a yes and a no
+- Hidden test claims that look like real ones, locked in by an independent auditor in batches
 - Whatever the law requires where it runs

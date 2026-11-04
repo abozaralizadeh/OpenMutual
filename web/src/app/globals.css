@@ -95,6 +95,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visib
 .callout.warn { background: var(--warn-soft); color: var(--warn); }
 
 .table-wrap { overflow-x: auto; }
+.compact th, .compact td { white-space: nowrap; }
 table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
 th { text-align: left; font-weight: 550; color: var(--muted); font-size: 0.84rem; }
 th, td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }

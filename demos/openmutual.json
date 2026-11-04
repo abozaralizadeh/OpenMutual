@@ -1,5 +1,5 @@
 {
-  "//": "Demo of the real app. Start a fresh local stack first: ADMIN_TOKEN=demo-local-admin npm run dev. Then record with the demo-recorder tool. The token is a throwaway for that local run only.",
+  "//": "Demo of the real app. Start a fresh local stack first: ADMIN_TOKEN=demo-local-admin npm run dev. Then record with the demo-recorder tool. The token is a throwaway for that local run only. No title cards: the video starts on the app itself, and the trims also skip the cards in older recordings.",
   "name": "openmutual-demo",
   "url": "http://localhost:3417/",
   "viewport": "desktop",
@@ -11,11 +11,6 @@
   "hide": [
     "nextjs-portal"
   ],
-  "intro": {
-    "title": "OpenMutual",
-    "subtitle": "A community risk pool, simulated with test money",
-    "duration": 2400
-  },
   "steps": [
     {
       "caption": "A simulation with test money on a local chain",
@@ -363,21 +358,20 @@
       "wait": 400
     }
   ],
-  "outro": {
-    "title": "OpenMutual",
-    "subtitle": "Source available. Test money only.",
-    "duration": 2400
-  },
   "exports": [
     {
-      "file": "openmutual-demo.mp4"
+      "file": "openmutual-demo.mp4",
+      "trim": [
+        "#1",
+        "end-of-steps"
+      ]
     },
     {
       "file": "openmutual-demo.gif",
       "width": 800,
       "fps": 10,
       "trim": [
-        "intro",
+        "#1",
         "numbers@end"
       ]
     },
